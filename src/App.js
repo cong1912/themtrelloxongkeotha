@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { v4 as uuid } from 'uuid';
 import List from './components/List/List';
 import store from './utils/store';
 import StoreApi from './utils/storeApi';
+import api from './api/Project';
 import InputContainer from './components/Input/InputContainer';
 import { makeStyles } from '@material-ui/core/styles';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
@@ -18,6 +19,19 @@ const useStyle = makeStyles((theme) => ({
 }));
 
 export default function App() {
+  const [project,setProject]=useState([]);
+  const retrieveProject = async ()=>{
+    const response = await api.get("api/project/1")
+    return response.data;
+  }
+  useEffect(()=>{
+    const getAllProjects = async ()=>{
+      const allProject =await retrieveProject();
+      if(allProject) setProject(allProject);
+    };
+    getAllProjects();
+  },[]);
+  console.log(project)
   const [data, setData] = useState(store);
   const classes = useStyle();
   const addMoreCard = (title, listId) => {
@@ -31,7 +45,7 @@ export default function App() {
 
     const list = data.lists[listId];
     list.cards = [...list.cards, newCard];
-
+    
     const newState = {
       ...data,
       lists: {
@@ -120,6 +134,7 @@ export default function App() {
     }
   };
   return (
+    
     <StoreApi.Provider value={{ addMoreCard, addMoreList, updateListTitle }}>
       <DragDropContext onDragEnd={onDragEnd}>
         <Droppable droppableId="app" type="list" direction="horizontal">
@@ -131,6 +146,7 @@ export default function App() {
             >
               {data.listIds.map((listId, index) => {
                 const list = data.lists[listId];
+                {console.log(list)}
                 return <List list={list} key={listId} index={index} />;
               })}
               <InputContainer type="list" />
